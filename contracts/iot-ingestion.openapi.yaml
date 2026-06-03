@@ -4,8 +4,13 @@ info:
   version: 0.4.0
   description: |
     Contract dùng cho Lab 04 Docker packaging, được đồng bộ lại với logic Lab 03.
-    Payload chính dùng các trường device_id, metric, value, unit và timestamp.
-    Boundary minh họa cho temperature là -40 đến 80.
+    API mô phỏng dịch vụ IoT Ingestion, cho phép ghi nhận dữ liệu cảm biến,
+    truy vấn bản ghi mới nhất và kiểm tra trạng thái dịch vụ khi chạy trong Docker container.
+    Payload chính sử dụng các trường device_id, metric, value, unit và timestamp.
+    Boundary minh họa cho metric temperature là từ -40 đến 80.
+  contact:
+    name: Nhom 13
+    email: qing07112003@gmail.com
 servers:
   - url: http://localhost:8000
     description: Local or Docker container service
@@ -191,6 +196,7 @@ paths:
       tags: [readings]
       operationId: getReadingById
       summary: Lấy chi tiết một bản ghi cảm biến
+      description: Trả về chi tiết một bản ghi cảm biến theo reading_id, dùng để kiểm tra dữ liệu đã được ghi nhận trong service.
       parameters:
         - name: reading_id
           in: path
