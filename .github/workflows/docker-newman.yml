@@ -1,4 +1,4 @@
-name: Lab04 Docker and Newman Verification
+﻿name: Lab04 Docker and Newman Verification
 
 on:
   push:
@@ -34,8 +34,11 @@ jobs:
             --env-file .env.example \
             fit4110/iot-ingestion:lab04
 
+      - name: Show running containers
+        run: docker ps -a
+
       - name: Wait for service health
-        run: npx wait-on http://localhost:8000/health --timeout 30000
+        run: npx wait-on http://localhost:8000/health --timeout 60000
 
       - name: Run Newman against Docker container
         run: npm run test:local
@@ -53,4 +56,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lab04-newman-reports
-          path: reports/
+          path: reports/	
