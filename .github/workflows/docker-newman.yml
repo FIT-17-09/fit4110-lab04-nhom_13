@@ -1,4 +1,4 @@
-﻿name: Lab04 Docker and Newman Verification
+name: Lab04 Docker and Newman Verification
 
 on:
   push:
@@ -56,4 +56,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lab04-newman-reports
-          path: reports/	
+          path: reports/
