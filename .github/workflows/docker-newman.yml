@@ -1,4 +1,4 @@
-name: Lab04 Docker and Newman Verification
+﻿name: Lab04 Docker and Newman Verification
 
 on:
   push:
@@ -27,12 +27,7 @@ jobs:
         run: docker build -t fit4110/iot-ingestion:lab04 .
 
       - name: Run Docker container
-        run: |
-          docker run -d --rm \
-            --name fit4110-iot-lab04 \
-            -p 8000:8000 \
-            --env-file .env.example \
-            fit4110/iot-ingestion:lab04
+        run: docker run -d --rm --name fit4110-iot-lab04 -p 8000:8000 --env-file .env.example fit4110/iot-ingestion:lab04
 
       - name: Show running containers
         run: docker ps -a
