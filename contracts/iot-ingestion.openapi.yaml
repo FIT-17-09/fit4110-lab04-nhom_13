@@ -21,6 +21,8 @@ tags:
     description: Health and runtime information
   - name: readings
     description: Sensor telemetry ingestion
+  - name: analytics
+    description: Analytics event ingestion
 
 security:
   - bearerAuth: []
@@ -242,6 +244,66 @@ paths:
                     status: 404
                     detail: Reading R-20260513-9999 does not exist
                     instance: /readings/R-20260513-9999
+  /analytics/events:
+    post:
+      tags:
+        - analytics
+      operationId: receiveAnalyticsEvent
+      summary: Receive analytics event
+      description: Receive event data from upstream services for analytics processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyticsEventRequest"
+            examples:
+              telemetryEvent:
+                value:
+                  eventId: "550e8400-e29b-41d4-a716-446655440000"
+                  correlationId: "a12f9c88-1111-2222-3333-abcdef123456"
+                  timestamp: "2026-05-18T12:00:00Z"
+                  eventType: "telemetry.ingested"
+                  source: "iot-ingestion"
+                  data:
+                    deviceId: "sensor-001"
+                    metricType: "temperature"
+                    value: 30.8
+                    unit: "°C"
+                    area: "room-a101"
+      responses:
+        "202":
+          description: Event accepted for analytics processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsEventAcceptedResponse"
+              examples:
+                accepted:
+                  value:
+                    eventId: "550e8400-e29b-41d4-a716-446655440000"
+                    status: accepted
+                    message: Event accepted for processing
+        "400":
+          description: Invalid analytics event request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Duplicate event
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                duplicate:
+                  value:
+                    type: https://smart-campus.example.com/problems/duplicate-event
+                    title: Duplicate event
+                    status: 409
+                    detail: eventId has already been processed
+                    instance: /analytics/events
 
 components:
   securitySchemes:
@@ -283,6 +345,73 @@ components:
           type: string
           format: date-time
           example: "2026-05-13T08:30:00+07:00"
+    AnalyticsEventRequest:
+      type: object
+      required:
+        - eventId
+        - correlationId
+        - timestamp
+        - eventType
+        - source
+        - data
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique event id for idempotency.
+        correlationId:
+          type: string
+          description: Correlation id for tracing across services.
+        timestamp:
+          type: string
+          format: date-time
+          description: Event timestamp in ISO 8601 UTC format.
+        eventType:
+          type: string
+          description: Type of event sent to Analytics.
+          enum:
+            - telemetry.ingested
+            - device.status.changed
+            - camera.motion.detected
+            - camera.status.changed
+            - vision.analysis.completed
+            - core.alert.created
+            - core.decision.created
+            - access.log.created
+            - access.denied
+            - notification.event.created
+        source:
+          type: string
+          description: Source service that publishes the event.
+          enum:
+            - iot-ingestion
+            - camera-stream
+            - ai-vision
+            - core-business
+            - access-gate
+            - notification
+        data:
+          type: object
+          description: Event-specific payload.
+          additionalProperties: true
+
+    AnalyticsEventAcceptedResponse:
+      type: object
+      required:
+        - eventId
+        - status
+        - message
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - accepted
+        message:
+          type: string
+          example: Event accepted for processing
 
     SensorReading:
       allOf:

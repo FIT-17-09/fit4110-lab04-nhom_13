@@ -158,6 +158,59 @@
               }
             }
           ]
+        },
+        {
+          "name": "POST analytics event returns 202",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 202', function () {",
+                  "  pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "pm.test('response has accepted status', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.eql('accepted');",
+                  "  pm.expect(json.message).to.eql('Event accepted for processing');",
+                  "  pm.expect(json.eventId).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{$guid}}\",\n  \"correlationId\": \"a12f9c88-1111-2222-3333-abcdef123456\",\n  \"timestamp\": \"2026-05-18T12:00:00Z\",\n  \"eventType\": \"telemetry.ingested\",\n  \"source\": \"iot-ingestion\",\n  \"data\": {\n    \"deviceId\": \"sensor-001\",\n    \"metricType\": \"temperature\",\n    \"value\": 30.8,\n    \"unit\": \"?C\",\n    \"area\": \"room-a101\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "events"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },

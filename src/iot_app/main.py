@@ -82,9 +82,22 @@ class SensorReadingCreated(BaseModel):
     metric: SensorMetric
     accepted: bool
     created_at: str
+class AnalyticsEventRequest(BaseModel):
+    eventId: str
+    correlationId: str
+    timestamp: str
+    eventType: str
+    source: str
+    data: Dict
 
+
+class AnalyticsEventAcceptedResponse(BaseModel):
+    eventId: str
+    status: str
+    message: str
 
 READINGS: List[Dict] = []
+ANALYTICS_EVENTS: List[Dict] = []
 
 
 def build_problem(
@@ -202,6 +215,37 @@ def health() -> HealthResponse:
         version=SERVICE_VERSION,
     )
 
+@app.post(
+    "/analytics/events",
+    response_model=AnalyticsEventAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        202: {"model": AnalyticsEventAcceptedResponse},
+        400: {"model": ProblemDetails},
+        409: {"model": ProblemDetails},
+    },
+)
+def receive_analytics_event(payload: AnalyticsEventRequest) -> AnalyticsEventAcceptedResponse:
+    for item in ANALYTICS_EVENTS:
+        if item["eventId"] == payload.eventId:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=build_problem(
+                    status_code=status.HTTP_409_CONFLICT,
+                    title="Duplicate event",
+                    detail="eventId has already been processed",
+                    instance="/analytics/events",
+                    problem_type="https://smart-campus.example.com/problems/duplicate-event",
+                ),
+            )
+
+    ANALYTICS_EVENTS.append(payload.model_dump())
+
+    return AnalyticsEventAcceptedResponse(
+        eventId=payload.eventId,
+        status="accepted",
+        message="Event accepted for processing",
+    )
 
 @app.post(
     "/readings",
